@@ -1,1 +1,2 @@
 {"ts": "2026-04-20T09:30:19.463094+00:00", "alert": "high_error_rate", "severity": "P1", "value": "error_rate=33.3%", "condition": "error_rate_pct > 5", "runbook": "docs/alerts.md#2-high-error-rate"}
+{"ts": "2026-04-20T09:41:16.103045+00:00", "alert": "low_quality_score", "severity": "P2", "value": "quality_avg=0.000", "condition": "quality_avg < 0.75", "runbook": "docs/alerts.md#4-low-quality-score"}
