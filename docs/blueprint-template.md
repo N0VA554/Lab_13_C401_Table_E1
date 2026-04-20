@@ -3,77 +3,77 @@
 > **Instruction**: Fill in all sections below. This report is designed to be parsed by an automated grading assistant. Ensure all tags (e.g., `[GROUP_NAME]`) are preserved.
 
 ## 1. Team Metadata
-- [GROUP_NAME]: 
-- [REPO_URL]: 
-- [MEMBERS]:
-  - Member A: [Name] | Role: Logging & PII
-  - Member B: [Name] | Role: Tracing & Enrichment
-  - Member C: [Name] | Role: SLO & Alerts
-  - Member D: [Name] | Role: Load Test & Dashboard
-  - Member E: [Name] | Role: Demo & Report
+- [GROUP_NAME]: E1
+- [REPO_URL]: https://github.com/N0VA554/Lab_13_C401_Table_E1
+- [MEMBERS]: 5
+  - Nguyễn Đức Manh, Role: Security & Privacy · Dashboard UI · Token Limit (per user & per query)
+  - Nguyễn Anh Hào, Role: Logging structure
+  - Lê Hà An, Role: agent.py, tracing.py
+  - Lê Ngọc Hải, Role: Monitoring & SRE
+  - Nguyễn Ngọc Cường, Role: QA, Reporting
 
 ---
 
 ## 2. Group Performance (Auto-Verified)
-- [VALIDATE_LOGS_FINAL_SCORE]: /100
-- [TOTAL_TRACES_COUNT]: 
-- [PII_LEAKS_FOUND]: 
+- [VALIDATE_LOGS_FINAL_SCORE]: 100/100
+- [TOTAL_TRACES_COUNT]: 75
+- [PII_LEAKS_FOUND]: 0
 
 ---
 
 ## 3. Technical Evidence (Group)
 
 ### 3.1 Logging & Tracing
-- [EVIDENCE_CORRELATION_ID_SCREENSHOT]: [Path to image]
-- [EVIDENCE_PII_REDACTION_SCREENSHOT]: [Path to image]
-- [EVIDENCE_TRACE_WATERFALL_SCREENSHOT]: [Path to image]
+- [EVIDENCE_CORRELATION_ID_SCREENSHOT]: dashboard.jpg
+- [EVIDENCE_PII_REDACTION_SCREENSHOT]: data/logs.jsonl
+- [EVIDENCE_TRACE_WATERFALL_SCREENSHOT]: alert.jpg
 - [TRACE_WATERFALL_EXPLANATION]: (Briefly explain one interesting span in your trace)
 
 ### 3.2 Dashboard & SLOs
-- [DASHBOARD_6_PANELS_SCREENSHOT]: [Path to image]
+- [DASHBOARD_6_PANELS_SCREENSHOT]: dashboard.jpg
 - [SLO_TABLE]:
 | SLI | Target | Window | Current Value |
 |---|---:|---|---:|
-| Latency P95 | < 3000ms | 28d | |
-| Error Rate | < 2% | 28d | |
-| Cost Budget | < $2.5/day | 1d | |
+| Latency P95 | < 2500ms | 28d |98.8% |
+| Error Rate | ≤ 1%| 28d |99.6% |
+| Cost Budget | < $5/day | 1d | < $5/day|
 
 ### 3.3 Alerts & Runbook
-- [ALERT_RULES_SCREENSHOT]: [Path to image]
-- [SAMPLE_RUNBOOK_LINK]: [docs/alerts.md#L...]
+- [ALERT_RULES_SCREENSHOT]: alert.jpg
+- [SAMPLE_RUNBOOK_LINK]: docs/alerts.md#1-high-latency-p95
 
 ---
 
 ## 4. Incident Response (Group)
-- [SCENARIO_NAME]: (e.g., rag_slow)
-- [SYMPTOMS_OBSERVED]: 
-- [ROOT_CAUSE_PROVED_BY]: (List specific Trace ID or Log Line)
-- [FIX_ACTION]: 
-- [PREVENTIVE_MEASURE]: 
+- [SCENARIO_NAME]: người dùng đặt câu hỏi quá dài
+- [SYMPTOMS_OBSERVED]: thời gian chạy chậm dần khi đạt sát giới hạn token
+- [ROOT_CAUSE_PROVED_BY]: hiển thị biểu đồ trên dashboard về user đã đạt quá limit token
+- [FIX_ACTION]: có cảnh báo trên dashboard và thông báo rõ limit của người dùng đó
+- [PREVENTIVE_MEASURE]: giới hạn số token người dùng hỏi trên chat bot và hiển thị khi người dùng đạt giới hạn để họ xóa bớt token đi (ví dụ 1000 token)
 
 ---
 
 ## 5. Individual Contributions & Evidence
 
-### [MEMBER_A_NAME]
-- [TASKS_COMPLETED]: 
-- [EVIDENCE_LINK]: (Link to specific commit or PR)
+### Nguyễn Đức Manh
+- [TASKS_COMPLETED]: Security & Privacy (PII scrubber) · Dashboard UI · Token limit (per user & per query)
+- [EVIDENCE_LINK]: https://github.com/N0VA554/Lab_13_C401_Table_E1/commit/9469033, https://github.com/N0VA554/Lab_13_C401_Table_E1/commit/d2c51f1, https://github.com/N0VA554/Lab_13_C401_Table_E1/commit/1c998b1
 
-### [MEMBER_B_NAME]
-- [TASKS_COMPLETED]: 
-- [EVIDENCE_LINK]: 
+### Nguyễn Anh Hào
+- [TASKS_COMPLETED]: Logging structure · Request correlation · Context enrichment
+- [EVIDENCE_LINK]: app/main.py
 
-### [MEMBER_C_NAME]
-- [TASKS_COMPLETED]: 
-- [EVIDENCE_LINK]: 
+### Lê Hà An
+- [TASKS_COMPLETED]: agent.py · tracing.py
+- [EVIDENCE_LINK]: agent.py, tracing.py
 
-### [MEMBER_D_NAME]
-- [TASKS_COMPLETED]: 
-- [EVIDENCE_LINK]: 
+### Lê Ngọc Hải
+- [TASKS_COMPLETED]: Monitoring & SRE
+- [EVIDENCE_LINK]: app/metrics.py, config/slo.yaml, scripts/alert_monitor.py,app/incidents.py, scripts/load_test.py
 
-### [MEMBER_E_NAME]
-- [TASKS_COMPLETED]: 
-- [EVIDENCE_LINK]: 
+### Nguyễn Ngọc Cường
+- [TASKS_COMPLETED]: QA · Reporting
+- [EVIDENCE_LINK]: docs/blueprint-template.md
 
 ---
 
