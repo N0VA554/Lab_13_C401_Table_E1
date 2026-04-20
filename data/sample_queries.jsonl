@@ -8,3 +8,6 @@
 {"user_id":"u08","session_id":"s08","feature":"qa","message":"How do I debug tail latency?"}
 {"user_id":"u09","session_id":"s09","feature":"qa","message":"What is the policy for PII and credit card 4111 1111 1111 1111?"}
 {"user_id":"u10","session_id":"s10","feature":"qa","message":"How should alerts be designed?"}
+{"user_id":"u11","session_id":"s11","feature":"qa","message":"I lost my passport C9876543 while traveling for company business, can HR help?"}
+{"user_id":"u12","session_id":"s12","feature":"summary","message":"My home address is 123 Vinhomes Ocean Park, Hanoi. Is it safe to save this?"}
+{"user_id":"u13","session_id":"s13","feature":"qa","message":"My student ID is vni123456. Can I get a refund for my tuition fee?"}
