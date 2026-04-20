@@ -11,6 +11,12 @@ ERRORS: Counter[str] = Counter()
 TRAFFIC: int = 0
 QUALITY_SCORES: list[float] = []
 
+TOKEN_QUOTA_PER_USER = 1000
+USER_TOKENS: dict[str, int] = {}
+
+MAX_COST_PER_QUERY = 0.005
+COST_VIOLATIONS: int = 0
+
 
 def record_request(latency_ms: int, cost_usd: float, tokens_in: int, tokens_out: int, quality_score: float) -> None:
     global TRAFFIC
@@ -20,6 +26,33 @@ def record_request(latency_ms: int, cost_usd: float, tokens_in: int, tokens_out:
     REQUEST_TOKENS_IN.append(tokens_in)
     REQUEST_TOKENS_OUT.append(tokens_out)
     QUALITY_SCORES.append(quality_score)
+
+
+def record_user_tokens(user_id_hash: str, tokens: int) -> None:
+    USER_TOKENS[user_id_hash] = USER_TOKENS.get(user_id_hash, 0) + tokens
+
+
+def check_quota(user_id_hash: str) -> tuple[bool, int]:
+    """Returns (is_exceeded, current_usage)."""
+    used = USER_TOKENS.get(user_id_hash, 0)
+    return used >= TOKEN_QUOTA_PER_USER, used
+
+
+def check_cost(cost_usd: float) -> bool:
+    """Returns True if cost exceeds max limit."""
+    return cost_usd > MAX_COST_PER_QUERY
+
+
+def record_cost_violation() -> None:
+    global COST_VIOLATIONS
+    COST_VIOLATIONS += 1
+
+
+def user_quota_snapshot() -> dict:
+    return {
+        "quota": TOKEN_QUOTA_PER_USER,
+        "users": {uid: used for uid, used in sorted(USER_TOKENS.items(), key=lambda x: -x[1])},
+    }
 
 
 
@@ -49,4 +82,6 @@ def snapshot() -> dict:
         "tokens_out_total": sum(REQUEST_TOKENS_OUT),
         "error_breakdown": dict(ERRORS),
         "quality_avg": round(mean(QUALITY_SCORES), 4) if QUALITY_SCORES else 0.0,
+        "max_cost_per_query": MAX_COST_PER_QUERY,
+        "cost_violations": COST_VIOLATIONS,
     }

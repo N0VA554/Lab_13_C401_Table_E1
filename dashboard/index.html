@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Observability Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --accent-success: #10b981;
+            --accent-danger: #ef4444;
+            --accent-warning: #f59e0b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-success);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .panel-header {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        /* Stat numbers */
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        
+        .chart-container.small {
+            height: 150px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Internal IT/HR Assistant Observability</h1>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            System Online
+        </div>
+    </div>
+
+    <!-- Top layer: Traffic & Quality (Stats) -->
+    <div class="grid">
+        <div class="panel">
+            <div class="panel-header">Total Traffic (Requests)</div>
+            <div class="stat-value" id="valTraffic">0</div>
+            <div class="stat-label">Total successfully recorded payloads.</div>
+            <div class="chart-container small" style="margin-top: 1rem;">
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">Average Quality Score</div>
+            <div class="stat-value" id="valQuality">0.00</div>
+            <div class="stat-label">SLO Target: 0.85</div>
+            <div class="chart-container small" style="margin-top: 1rem;">
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">Error Breakdown</div>
+            <div class="chart-container small">
+                <canvas id="errorChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Quota per User -->
+    <div class="panel" style="margin-bottom: 1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div class="panel-header" style="margin-bottom:0;">Token Quota per User <span style="color:var(--text-secondary);font-weight:400;text-transform:none;font-size:0.8rem;">(limit: <span id="quotaLimit">1000</span> tokens · top 10)</span></div>
+            <div style="display:flex; gap:1.5rem;">
+                <div style="text-align:center;">
+                    <span style="font-size:1.4rem;font-weight:700;" id="quotaActiveUsers">0</span>
+                    <span style="color:var(--text-secondary);font-size:0.75rem;margin-left:0.3rem;">Active</span>
+                </div>
+                <div style="text-align:center;">
+                    <span style="font-size:1.4rem;font-weight:700;color:var(--accent-warning);" id="quotaNearUsers">0</span>
+                    <span style="color:var(--text-secondary);font-size:0.75rem;margin-left:0.3rem;">Near (>80%)</span>
+                </div>
+                <div style="text-align:center;">
+                    <span style="font-size:1.4rem;font-weight:700;color:var(--accent-danger);" id="quotaExceededUsers">0</span>
+                    <span style="color:var(--text-secondary);font-size:0.75rem;margin-left:0.3rem;">Blocked</span>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container" style="height:220px;">
+            <canvas id="quotaChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Middle layer: Latency, Cost, Tokens -->
+    <div class="grid">
+        <div class="panel">
+            <div class="panel-header">Latency Profile (ms)</div>
+            <div class="chart-container">
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <div class="panel-header" style="margin-bottom:0;">Operation Costs (USD)</div>
+                <div style="display:flex;gap:1rem;font-size:0.8rem;">
+                    <span style="color:var(--text-secondary);">Limit: <span id="maxCostLabel" style="color:var(--accent-warning);font-weight:600;">$0.005</span></span>
+                    <span style="color:var(--text-secondary);">Violations: <span id="costViolations" style="color:var(--accent-danger);font-weight:700;">0</span></span>
+                </div>
+            </div>
+            <div class="chart-container" style="height:220px;">
+                <canvas id="costChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">Tokens Distribution</div>
+            <div class="chart-container">
+                <canvas id="tokenChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart Defaults
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.titleColor = '#f8fafc';
+
+        // Histories arrays for time-series UI
+        const timeLabels = [];
+        const histLatency = { p50: [], p95: [], p99: [] };
+        const histCost = [];
+        const histQuality = [];
+        const histTraffic = [];
+
+        // 1. Latency Chart (Line)
+        const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+        const latencyChart = new Chart(ctxLatency, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    { label: 'P50', data: histLatency.p50, borderColor: '#10b981', tension: 0.3 },
+                    { label: 'P95', data: histLatency.p95, borderColor: '#f59e0b', tension: 0.3 },
+                    { label: 'P99', data: histLatency.p99, borderColor: '#ef4444', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // 2. Cost Chart (Area)
+        const ctxCost = document.getElementById('costChart').getContext('2d');
+        const costChart = new Chart(ctxCost, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Total Cost ($)',
+                    data: histCost,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // 3. Token Chart (Bar)
+        const ctxToken = document.getElementById('tokenChart').getContext('2d');
+        const tokenChart = new Chart(ctxToken, {
+            type: 'bar',
+            data: {
+                labels: ['Input Tokens', 'Output Tokens'],
+                datasets: [{
+                    label: 'Tokens Total',
+                    data: [0, 0],
+                    backgroundColor: ['#3b82f6', '#10b981'],
+                    borderRadius: 4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 4. Error Chart (Doughnut)
+        const ctxError = document.getElementById('errorChart').getContext('2d');
+        const errorChart = new Chart(ctxError, {
+            type: 'doughnut',
+            data: {
+                labels: ['None'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#1e293b', '#ef4444', '#f59e0b', '#3b82f6'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        });
+
+        // 5. Traffic Sparkline
+        const ctxTraf = document.getElementById('trafficChart').getContext('2d');
+        const trafChart = new Chart(ctxTraf, {
+            type: 'line',
+            data: { labels: timeLabels, datasets: [{ label: 'Req', data: histTraffic, borderColor: '#3b82f6', borderWidth: 2, tension: 0.1 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+
+        // 6. Quality Sparkline
+        const ctxQual = document.getElementById('qualityChart').getContext('2d');
+        const qualChart = new Chart(ctxQual, {
+            type: 'line',
+            data: { labels: timeLabels, datasets: [{ label: 'Score', data: histQuality, borderColor: '#10b981', fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.3 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+
+
+        // Polling loop
+        async function fetchMetrics() {
+            try {
+                // Since this runs on the same FastAPI server (e.g. /dashboard/index.html)
+                // We use relative path to hit the API root correctly.
+                const response = await fetch('/metrics');
+                const data = await response.json();
+
+                // Update text stats
+                document.getElementById('valTraffic').innerText = data.traffic;
+                document.getElementById('maxCostLabel').innerText = '$' + data.max_cost_per_query.toFixed(3);
+                const viol = data.cost_violations;
+                const violEl = document.getElementById('costViolations');
+                violEl.innerText = viol;
+                violEl.style.color = viol > 0 ? 'var(--accent-danger)' : 'var(--accent-success)';
+                
+                const qualityColor = data.quality_avg >= 0.85 ? 'var(--accent-success)' : (data.quality_avg >= 0.70 ? 'var(--accent-warning)' : 'var(--accent-danger)');
+                const qualEl = document.getElementById('valQuality');
+                qualEl.innerText = data.quality_avg.toFixed(2);
+                qualEl.style.color = qualityColor;
+
+                // Time label
+                const now = new Date().toLocaleTimeString();
+                if (timeLabels.length > 20) {
+                    timeLabels.shift();
+                    histLatency.p50.shift();
+                    histLatency.p95.shift();
+                    histLatency.p99.shift();
+                    histCost.shift();
+                    histTraffic.shift();
+                    histQuality.shift();
+                }
+
+                timeLabels.push(now);
+                histLatency.p50.push(data.latency_p50);
+                histLatency.p95.push(data.latency_p95);
+                histLatency.p99.push(data.latency_p99);
+                histCost.push(data.total_cost_usd);
+                histTraffic.push(data.traffic);
+                histQuality.push(data.quality_avg);
+
+                // Update Error Pie
+                const errKeys = Object.keys(data.error_breakdown);
+                if(errKeys.length > 0) {
+                    errorChart.data.labels = errKeys;
+                    errorChart.data.datasets[0].data = errKeys.map(k => data.error_breakdown[k]);
+                } else {
+                    errorChart.data.labels = ['None'];
+                    errorChart.data.datasets[0].data = [1];
+                }
+
+                // Update Tokens
+                tokenChart.data.datasets[0].data = [data.tokens_in_total, data.tokens_out_total];
+
+                // Refresh plots
+                latencyChart.update();
+                costChart.update();
+                tokenChart.update();
+                errorChart.update();
+                trafChart.update();
+                qualChart.update();
+
+            } catch (err) {
+                console.error("Failed to pull metrics:", err);
+            }
+        }
+
+        // Quota horizontal bar chart
+        const ctxQuota = document.getElementById('quotaChart').getContext('2d');
+        const quotaChart = new Chart(ctxQuota, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Tokens Used', data: [], backgroundColor: [], borderRadius: 4, borderSkipped: false }] },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.raw} tokens (${Math.round(ctx.raw / quotaChart._quota * 100)}%)` } },
+                    annotation: { annotations: {
+                        quotaLine: { type: 'line', scaleID: 'x', value: 1000, borderColor: '#ef4444', borderWidth: 2, borderDash: [6,3], label: { content: 'Quota', display: true, color: '#ef4444', font: { size: 11 } } }
+                    }}
+                },
+                scales: {
+                    x: { beginAtZero: true, max: 1200, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#94a3b8', font: { family: 'monospace', size: 12 } }, grid: { display: false } }
+                }
+            }
+        });
+        quotaChart._quota = 1000;
+
+        async function fetchUserQuota() {
+            try {
+                const res = await fetch('/metrics/users');
+                const data = await res.json();
+                const quota = data.quota;
+                const users = data.users;
+                quotaChart._quota = quota;
+
+                document.getElementById('quotaLimit').innerText = quota;
+                document.getElementById('quotaActiveUsers').innerText = Object.keys(users).length;
+
+                // Top 10 users sorted by usage
+                const top10 = Object.entries(users).sort((a,b) => b[1]-a[1]).slice(0,10);
+                let exceeded = 0, near = 0;
+
+                quotaChart.data.labels = top10.map(([uid]) => uid.substring(0,8)+'…');
+                quotaChart.data.datasets[0].data = top10.map(([,used]) => used);
+                quotaChart.data.datasets[0].backgroundColor = top10.map(([,used]) => {
+                    const pct = used / quota * 100;
+                    if (pct >= 100) { exceeded++; return '#ef4444'; }
+                    if (pct >= 80)  { near++;     return '#f59e0b'; }
+                    return '#10b981';
+                });
+                quotaChart.options.plugins.annotation.annotations.quotaLine.value = quota;
+                quotaChart.options.scales.x.max = Math.max(quota * 1.2, Math.max(...top10.map(([,u])=>u)) * 1.1 || quota * 1.2);
+                quotaChart.update();
+
+                document.getElementById('quotaExceededUsers').innerText = exceeded;
+                document.getElementById('quotaNearUsers').innerText = near;
+            } catch (e) {
+                console.error('Failed to fetch user quota:', e);
+            }
+        }
+
+        // Start polling every 2s
+        setInterval(fetchMetrics, 2000);
+        setInterval(fetchUserQuota, 2000);
+        fetchMetrics();
+        fetchUserQuota();
+    </script>
+</body>
+</html>

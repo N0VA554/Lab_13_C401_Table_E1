@@ -4,12 +4,13 @@ import os
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from structlog.contextvars import bind_contextvars
 
 from .agent import LabAgent
 from .incidents import disable, enable, status
 from .logging_config import configure_logging, get_logger
-from .metrics import record_error, snapshot
+from .metrics import check_cost, check_quota, record_cost_violation, record_error, record_user_tokens, snapshot, user_quota_snapshot
 from .middleware import CorrelationIdMiddleware
 from .pii import hash_user_id, summarize_text
 from .schemas import ChatRequest, ChatResponse
@@ -20,6 +21,9 @@ log = get_logger()
 app = FastAPI(title="Day 13 Observability Lab")
 app.add_middleware(CorrelationIdMiddleware)
 agent = LabAgent()
+
+# Mount Dashboard UI
+app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
 
 
 @app.on_event("startup")
@@ -42,6 +46,11 @@ async def metrics() -> dict:
     return snapshot()
 
 
+@app.get("/metrics/users")
+async def metrics_users() -> dict:
+    return user_quota_snapshot()
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     # Enrich logs with request context (user_id_hash, session_id, feature, model, env)
@@ -53,6 +62,16 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
         env=os.getenv("APP_ENV", "dev"),
     )
     
+    uid_hash = hash_user_id(body.user_id)
+    exceeded, used = check_quota(uid_hash)
+    if exceeded:
+        log.warning(
+            "quota_exceeded",
+            service="api",
+            payload={"user_id_hash": uid_hash, "tokens_used": used},
+        )
+        raise HTTPException(status_code=429, detail=f"Token quota exceeded ({used} tokens used)")
+
     log.info(
         "request_received",
         service="api",
@@ -65,6 +84,16 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
             session_id=body.session_id,
             message=body.message,
         )
+        if check_cost(result.cost_usd):
+            record_cost_violation()
+            log.warning(
+                "cost_limit_exceeded",
+                service="api",
+                payload={"cost_usd": result.cost_usd, "max_cost_per_query": 0.005},
+            )
+            raise HTTPException(status_code=402, detail=f"Query cost ${result.cost_usd:.6f} exceeds limit $0.005000")
+
+        record_user_tokens(uid_hash, result.tokens_in + result.tokens_out)
         log.info(
             "response_sent",
             service="api",
