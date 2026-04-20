@@ -79,6 +79,5 @@
 ---
 
 ## 6. Bonus Items (Optional)
-- [BONUS_COST_OPTIMIZATION]: Cost guardrail + monitoring (enforce max cost/query $0.005; track `avg_cost_usd`, `total_cost_usd`, `cost_violations` via `/metrics`). Evidence: `app/main.py` (cost check + 402), `app/metrics.py` (snapshot fields), `dashboard/index.html` (cost panel).
-- [BONUS_AUDIT_LOGS]: Not implemented in code (only placeholder env var). Evidence: `.env.example` has `AUDIT_LOG_PATH=data/audit.jsonl`; README mentions optional `data/audit.jsonl`; no writer found in `app/`.
-- [BONUS_CUSTOM_METRIC]: Custom in-memory metrics endpoint `/metrics` + `/metrics/users` (latency percentiles, tokens totals, quality_avg, error_breakdown, per-user quota). Evidence: `app/metrics.py`, `app/main.py`, `scripts/alert_monitor.py`, `dashboard/index.html`.
+- [BONUS_COST_OPTIMIZATION]: Có cơ chế **chặn chi phí** và **theo dõi chi phí** (giới hạn max cost/query $0.005; theo dõi `avg_cost_usd`, `total_cost_usd`, `cost_violations` qua `/metrics`). **Bằng chứng**: `app/main.py` (check cost + trả 402), `app/metrics.py` (các field trong `snapshot()`), `dashboard/index.html` (panel cost).
+- [BONUS_CUSTOM_METRIC]: Có **custom metrics** lưu in-memory qua endpoint `/metrics` và `/metrics/users` (latency percentiles, tổng tokens in/out, `quality_avg`, `error_breakdown`, quota theo user). **Bằng chứng**: `app/metrics.py`, `app/main.py`, `scripts/alert_monitor.py`, `dashboard/index.html`.
