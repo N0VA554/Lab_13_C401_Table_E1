@@ -33,10 +33,9 @@
 - DASHBOARD_6_PANELS_SCREENSHOT: dashboard.jpg
 - SLO_TABLE:
 | SLI | Target | Window | Current Value |
-|---|---:|---|---:|
-| Latency P95 | < 2500ms | 28d |98.8% |
-| Error Rate | ≤ 1%| 28d |99.6% |
-| Cost Budget | < $5/day | 1d | < $5/day|
+| Latency P95 | < 2500ms | 28d | 98.8% |
+| Error Rate | ≤ 1% | 28d | 99.6% |
+| Cost Budget | < $5/day | 1d | < $5/day |
 
 ### 3.3 Alerts & Runbook
 - ALERT_RULES_SCREENSHOT: alert.jpg
