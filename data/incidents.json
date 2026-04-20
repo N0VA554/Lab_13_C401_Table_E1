@@ -1,5 +1,6 @@
 {
   "rag_slow": "Retrieval latency spike. Students should find slow RAG span in trace.",
   "tool_fail": "Vector store or tool error. Students should identify error_type from logs.",
-  "cost_spike": "Token usage spike. Students should explain higher output token cost."
+  "cost_spike": "Token usage spike. Students should explain higher output token cost.",
+  "pii_regex_bypass": "Tấn công bypass bộ lọc PII bằng cách sửa định dạng regex. Students should identify the PII leak alert and find the leaked data in logs."
 }

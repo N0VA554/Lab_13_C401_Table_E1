@@ -3,13 +3,13 @@ alerts:
     severity: P2
     condition: latency_p95_ms > 5000 for 30m
     type: symptom-based
-    owner: team-oncall
+    owner: it-ops-team
     runbook: docs/alerts.md#1-high-latency-p95
   - name: high_error_rate
     severity: P1
     condition: error_rate_pct > 5 for 5m
     type: symptom-based
-    owner: team-oncall
+    owner: it-ops-team
     runbook: docs/alerts.md#2-high-error-rate
   - name: cost_budget_spike
     severity: P2
@@ -17,3 +17,9 @@ alerts:
     type: symptom-based
     owner: finops-owner
     runbook: docs/alerts.md#3-cost-budget-spike
+  - name: pii_redaction_failure
+    severity: P1
+    condition: pii_leak_count > 0 for 1m
+    type: security-based
+    owner: security-team
+    runbook: docs/alerts.md#4-pii-redaction-failure
