@@ -38,3 +38,30 @@
   - shorten prompts
   - route easy requests to cheaper model
   - apply prompt cache
+
+## 4. Low quality score
+- Severity: P2
+- Trigger: `quality_score_avg < 0.75 for 10m`
+- Impact: agent answers are degraded — users receive low-relevance or short responses
+- First checks:
+  1. Check `quality_avg` in `/metrics` endpoint
+  2. Review recent traces in Langfuse — compare `doc_count` and `quality_score` metadata
+  3. Check if RAG corpus is returning "No domain document matched" for most queries
+  4. Check if LLM output length dropped significantly (tokens_out low)
+- Mitigation:
+  - expand RAG corpus with more domain documents
+  - improve prompt to produce longer, more relevant answers
+  - add fallback answer strategy when no docs matched
+
+## 5. Tool failure spike
+- Severity: P1
+- Trigger: `error_breakdown.RuntimeError > 3 in 5m`
+- Impact: vector store / RAG tool is failing — all requests error out with 500
+- First checks:
+  1. Check logs for `error_type: RuntimeError` and `event: request_failed`
+  2. Check if incident toggle `tool_fail` is enabled (via `/health` endpoint)
+  3. Verify vector store connectivity and timeout settings in `mock_rag.py`
+- Mitigation:
+  - disable failing tool via `/incidents/tool_fail/disable`
+  - switch to fallback retrieval (keyword search)
+  - return graceful degraded response without RAG context

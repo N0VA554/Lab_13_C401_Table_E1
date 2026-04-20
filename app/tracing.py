@@ -1,6 +1,6 @@
 # tracing.py
 import os
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
 def tracing_enabled() -> bool:
     # Kiểm tra xem các biến môi trường cần thiết đã được cài đặt chưa
@@ -10,5 +10,9 @@ def tracing_enabled() -> bool:
         os.getenv("LANGFUSE_HOST")
     ])
 
+def get_langfuse_client():
+    """Get the Langfuse client singleton for updating traces/spans."""
+    return get_client()
+
 # Xuất bản các decorators để dùng ở agent.py
-__all__ = ["observe", "langfuse_context", "tracing_enabled"]
+__all__ = ["observe", "get_langfuse_client", "tracing_enabled"]

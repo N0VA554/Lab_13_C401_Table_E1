@@ -9,8 +9,8 @@ PII_PATTERNS: dict[str, str] = {
     "cccd": r"\b\d{12}\b",
     "credit_card": r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b",
     "passport": r"\b[A-Z]\d{7}\b", # Ví dụ: C9876543
-    "student_id": r"\b(?i)vni\d{6}\b", # Ví dụ: vni123456
-    "address_ocean_park": r"(?i)\d+\s+Vinhomes Ocean Park", # Regex đơn giản hóa cho test
+    "student_id": r"\b(?i:vni)\d{6}\b", # Ví dụ: vni123456
+    "address_ocean_park": r"(?i:\d+\s+Vinhomes Ocean Park)", # Regex đơn giản hóa cho test
 }
 
 

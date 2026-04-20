@@ -1,13 +1,12 @@
 # agent.py (Bản cập nhật)
 from __future__ import annotations
 import time
-import asyncio # Thêm để hỗ trợ async
 from dataclasses import dataclass
 from . import metrics
 from .mock_llm import FakeLLM
 from .mock_rag import retrieve
 from .pii import hash_user_id, summarize_text
-from .tracing import langfuse_context, observe
+from .tracing import get_langfuse_client, observe
 
 @dataclass
 class AgentResult:
@@ -24,7 +23,7 @@ class LabAgent:
         self.llm = FakeLLM(model=model)
 
     @observe(name="lab_agent_run") # Tên trace hiển thị trên Langfuse
-    async def run(self, user_id: str, feature: str, session_id: str, message: str) -> AgentResult:
+    def run(self, user_id: str, feature: str, session_id: str, message: str) -> AgentResult:
         started = time.perf_counter()
         
         # 1. RAG Retrieval (Giả định retrieve có thể tốn thời gian)
@@ -37,8 +36,7 @@ class LabAgent:
             f"User Question: {message}"
         )
         
-        # 3. LLM Generation (Giả lập async call)
-        # Trong thực tế bạn sẽ dùng: response = await self.llm.agenerate(prompt)
+        # 3. LLM Generation
         response = self.llm.generate(prompt)
         
         # 4. Evaluation & Metrics
@@ -47,14 +45,15 @@ class LabAgent:
         cost_usd = self._estimate_cost(response.usage.input_tokens, response.usage.output_tokens)
 
         # 5. Enrich Langfuse Trace
-        langfuse_context.update_current_trace(
+        client = get_langfuse_client()
+        client.update_current_trace(
             user_id=hash_user_id(user_id),
             session_id=session_id,
             tags=["lab", feature, self.model],
             metadata={"env": "production"} # Thêm metadata để lọc
         )
         
-        langfuse_context.update_current_observation(
+        client.update_current_generation(
             input=prompt,
             output=response.text,
             metadata={"doc_count": len(docs), "quality_score": quality_score},
