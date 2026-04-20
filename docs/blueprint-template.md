@@ -79,6 +79,6 @@
 ---
 
 ## 6. Bonus Items (Optional)
-- [BONUS_COST_OPTIMIZATION]: (Description + Evidence)
-- [BONUS_AUDIT_LOGS]: (Description + Evidence)
-- [BONUS_CUSTOM_METRIC]: (Description + Evidence)
+- [BONUS_COST_OPTIMIZATION]: Cost guardrail + monitoring (enforce max cost/query $0.005; track `avg_cost_usd`, `total_cost_usd`, `cost_violations` via `/metrics`). Evidence: `app/main.py` (cost check + 402), `app/metrics.py` (snapshot fields), `dashboard/index.html` (cost panel).
+- [BONUS_AUDIT_LOGS]: Not implemented in code (only placeholder env var). Evidence: `.env.example` has `AUDIT_LOG_PATH=data/audit.jsonl`; README mentions optional `data/audit.jsonl`; no writer found in `app/`.
+- [BONUS_CUSTOM_METRIC]: Custom in-memory metrics endpoint `/metrics` + `/metrics/users` (latency percentiles, tokens totals, quality_avg, error_breakdown, per-user quota). Evidence: `app/metrics.py`, `app/main.py`, `scripts/alert_monitor.py`, `dashboard/index.html`.
