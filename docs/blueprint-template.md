@@ -73,7 +73,7 @@
 
 ### Nguyễn Ngọc Cường
 - [TASKS_COMPLETED]: QA · Reporting
-- [EVIDENCE_LINK]: docs/blueprint-template.md
+- [EVIDENCE_LINK]: docs/blueprint-template.md, images/alert.jpg, images/dashboard.jpg, https://github.com/N0VA554/Lab_13_C401_Table_E1/commit/2c5c7d74600bd3773358688490befd1ea73dedbb
 
 ---
 
