@@ -1,3 +1,5 @@
 {"question":"What is your refund policy?","must_include":["7 days","proof of purchase"]}
 {"question":"Explain why metrics traces and logs work together","must_include":["metrics","traces","logs"]}
 {"question":"What should not appear in app logs?","must_include":["PII","sensitive"]}
+{"question":"I lost my passport C9876543 while traveling for company business, can HR help?","must_include":["[REDACTED_PASSPORT]"]}
+{"question":"My student ID is vni123456. Can I get a refund for my tuition fee?","must_include":["[REDACTED_STUDENT_ID]"]}
